@@ -1,7 +1,15 @@
+import "@fortawesome/fontawesome-free/css/all.min.css";
+import "bootstrap-css-only/css/bootstrap.min.css";
+import "mdbvue/lib/css/mdb.min.css";
+
 import Vue from "vue";
-import App from "./App.vue";
+import vueHeadful from "vue-headful";
+
+import App from "./App";
 import router from "./router";
 import store from "./store";
+
+Vue.component("vue-headful", vueHeadful);
 
 Vue.config.productionTip = false;
 
