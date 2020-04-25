@@ -1,6 +1,7 @@
 <template>
   <div>
     <Navbar :route="currentRoute" />
+    <br /><br />
     <router-view />
   </div>
 </template>

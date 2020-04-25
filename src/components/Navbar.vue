@@ -39,7 +39,7 @@ export default {
   props: ["route"],
   computed: {
     isLoggedIn() {
-      return true;
+      return false;
     },
     noNav() {
       if (this.route === "/profile/create") {
