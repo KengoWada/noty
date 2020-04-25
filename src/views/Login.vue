@@ -25,9 +25,14 @@
             v-model="password"
           />
           <div class="text-center mt-4">
-            <mdb-btn class="white-border" @click="loginUser" color="black"
-              >Log In</mdb-btn
-            >
+            <mdb-btn class="white-border" @click="loginUser" color="black">
+              <div v-if="!loading">Log In</div>
+              <div
+                v-if="loading"
+                class="spinner-border text-light spinner-border-sm"
+                role="status"
+              ></div>
+            </mdb-btn>
           </div>
         </form>
 
@@ -51,12 +56,17 @@ export default {
     return {
       email: "",
       password: "",
-      error: ""
+      error: "",
+      loading: false
     };
   },
   methods: {
     loginUser() {
+      this.loading = true;
       console.log("Logging user in");
+      setTimeout(() => {
+        this.loading = false;
+      }, 5000);
     },
     loginWithGoogle() {
       console.log("Log in user using Google");

@@ -41,9 +41,14 @@
             {{ confirmPasswordError }}
           </p>
           <div class="text-center mt-4">
-            <mdb-btn class="white-border" color="black" @click="registerUser"
-              >Register</mdb-btn
-            >
+            <mdb-btn class="white-border" color="black" @click="registerUser">
+              <div v-if="!loading">Register</div>
+              <div
+                v-if="loading"
+                class="spinner-border text-light spinner-border-sm"
+                role="status"
+              ></div>
+            </mdb-btn>
           </div>
         </form>
 
@@ -70,7 +75,8 @@ export default {
       confirmPassword: "",
       emailError: "",
       passwordError: "",
-      confirmPasswordError: ""
+      confirmPasswordError: "",
+      loading: false
     };
   },
   methods: {
@@ -78,6 +84,8 @@ export default {
       this.emailError = "";
       this.passwordError = "";
       this.confirmPasswordError = "";
+
+      this.loading = true;
 
       let errors = 0;
       const re = /^(([^<>()\\[\]\\.,;:\s@"]+(\.[^<>()\\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -87,16 +95,19 @@ export default {
       }
 
       if (this.password.length < 6) {
-        this.passwordError = "Password length must be atleast 6 characters";
+        this.passwordError = "Password must be atleast 6 characters";
         errors++;
       }
 
       if (this.password !== this.confirmPassword) {
-        this.confirmPasswordError = "Password are not matching";
+        this.confirmPasswordError = "Passwords are not matching";
         errors++;
       }
 
       if (errors > 0) {
+        setTimeout(() => {
+          this.loading = false;
+        }, 5000);
         return;
       }
 
@@ -114,6 +125,7 @@ export default {
       this.usernameError = "";
       this.confirmPassword = "";
       this.confirmPasswordError = "";
+      this.loading = false;
     },
     registerUserWithGoogle() {
       console.log("Registering with Google...");
