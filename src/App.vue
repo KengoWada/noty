@@ -7,10 +7,31 @@
 </template>
 
 <script>
+import { mapActions } from "vuex";
+
+import firebase from "./firebaseConfig";
 import Navbar from "@/components/Navbar.vue";
 
 export default {
   name: "App",
+  methods: {
+    ...mapActions(["authState"])
+  },
+  created() {
+    this.authState().then(res => {
+      if (!res.isValid) {
+        return;
+      }
+
+      if (!res.exists) {
+        this.$router.push("/profile/create");
+        return;
+      }
+
+      firebase.analytics();
+      return;
+    });
+  },
   computed: {
     currentRoute() {
       return this.$route.path;
