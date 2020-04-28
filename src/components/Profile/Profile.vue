@@ -11,14 +11,14 @@
         <div class="container d-flex h-100">
           <img
             class="float-left preview"
-            :src="displayImage"
+            :src="user.displayImage"
             alt="displayImage"
           />
           <div class="row justify-content-center align-self-center margin-left">
             <h4>
-              <strong>{{ username }}</strong>
+              <strong>{{ user.username }}</strong>
               <br />
-              <h6>{{ aboutMe }}</h6>
+              <h6>{{ user.aboutMe }}</h6>
             </h4>
           </div>
         </div>
@@ -33,16 +33,17 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
+
 export default {
   name: "Profile",
-  data() {
-    return {
-      username: "KengoWada",
-      displayImage:
-        "https://lh4.googleusercontent.com/-Z03lSlAc8FE/AAAAAAAAAAI/AAAAAAAAAAA/AAKWJJPtRrIxc-ZnNqLG5B3lp5POLvQQGg/photo.jpg",
-      aboutMe:
-        "Lorem Ipsum telah menjadi text contoh semenjak tahun ke 1500an, apabila pencetak yang kurang terkenal mengambil sebuah galeri cetak dan yang"
-    };
+  methods: {
+    ...mapGetters(["getUser"])
+  },
+  computed: {
+    user() {
+      return this.getUser();
+    }
   }
 };
 </script>

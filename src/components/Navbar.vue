@@ -17,7 +17,9 @@
             :to="item.route"
             >{{ item.title }}</mdb-nav-item
           >
-          <mdb-nav-item v-if="isLoggedIn">Logout</mdb-nav-item>
+          <mdb-nav-item v-if="isAuthenticated" @click="logoutUser">
+            Logout
+          </mdb-nav-item>
         </mdb-navbar-nav>
       </mdb-navbar-toggler>
     </mdb-navbar>
@@ -25,6 +27,7 @@
 </template>
 
 <script>
+import { mapGetters, mapActions } from "vuex";
 import {
   mdbNavbar,
   mdbNavbarBrand,
@@ -37,9 +40,21 @@ import {
 export default {
   name: "NavbarPage",
   props: ["route"],
+  methods: {
+    ...mapGetters(["isLoggedIn"]),
+    ...mapActions(["logout"]),
+    async logoutUser() {
+      await this.logout();
+      if (this.route === "/") {
+        return;
+      }
+
+      this.$router.push("/");
+    }
+  },
   computed: {
-    isLoggedIn() {
-      return false;
+    isAuthenticated() {
+      return this.isLoggedIn();
     },
     noNav() {
       if (this.route === "/profile/create") {
@@ -52,7 +67,7 @@ export default {
       const register = [{ title: "Log In", route: "/login" }];
       const loggedIn = [{ title: "Profile", route: "/profile" }];
 
-      if (this.isLoggedIn) {
+      if (this.isAuthenticated) {
         return loggedIn;
       }
 

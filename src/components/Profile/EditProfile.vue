@@ -62,17 +62,19 @@
 </template>
 
 <script>
+import { mapGetters, mapActions } from "vuex";
 import { mdbBtn } from "mdbvue";
+
+import firestore from "@/firebase/firestore";
+import storage from "@/firebase/storage";
 
 export default {
   name: "CreateProfile",
   data() {
     return {
-      username: "KengoWada",
-      imageUrl:
-        "https://lh4.googleusercontent.com/-Z03lSlAc8FE/AAAAAAAAAAI/AAAAAAAAAAA/AAKWJJPtRrIxc-ZnNqLG5B3lp5POLvQQGg/photo.jpg",
-      aboutMe:
-        "Lorem Ipsum telah menjadi text contoh semenjak tahun ke 1500an, apabila pencetak yang kurang terkenal mengambil sebuah galeri cetak dan yang",
+      username: this.getUser().username,
+      imageUrl: this.getUser().displayImage,
+      aboutMe: this.getUser().aboutMe,
       image: null,
       usernameError: "",
       aboutMeError: "",
@@ -81,7 +83,9 @@ export default {
     };
   },
   methods: {
-    editProfile() {
+    ...mapGetters(["getUser"]),
+    ...mapActions(["createProfile"]),
+    async editProfile() {
       this.loading = true;
       this.imageError = "";
       this.aboutMeError = "";
@@ -89,8 +93,9 @@ export default {
 
       // Validation
       let errors = 0;
-      if (!this.imageUrl) {
-        this.imageError = "You must upload a profile image";
+
+      if (!this.username) {
+        this.usernameError = "Username can not be empty";
         errors++;
       }
 
@@ -100,21 +105,51 @@ export default {
       }
 
       // TODO Check if the username is taken.
-      // const usernameTaken = await profile.usernameTaken(this.username);
-      // if (usernameTaken) {
-      //   this.usernameError = 'Username is taken';
-      //   errors++;
-      // }
+      const usernameTaken =
+        this.username === this.getUser().username
+          ? false
+          : await firestore.usernameExists(this.username);
+      if (usernameTaken) {
+        this.usernameError = "Username is taken";
+        errors++;
+      }
 
       if (errors > 0) {
         this.loading = false;
         return;
       }
 
-      console.log("Creating Profile");
-      setTimeout(() => {
+      const url = this.image
+        ? await storage.uploadImage(this.image, this.image.name)
+        : this.imageUrl;
+
+      const data = {
+        username: this.username,
+        displayImage: url,
+        aboutMe: this.aboutMe
+      };
+
+      console.log("Editing Profile");
+
+      const res = await this.createProfile({
+        uid: this.getUser().uid,
+        profile: data
+      });
+
+      if (!res) {
         this.loading = false;
-      }, 5000);
+        return;
+      }
+
+      this.username = "";
+      this.imageUrl = "";
+      this.aboutMe = "";
+      this.imageError = "";
+      this.aboutMeError = "";
+      this.usernameError = "";
+      this.loading = false;
+
+      this.$router.push("/profile");
     },
     onChange(e) {
       const file = e.target.files[0];

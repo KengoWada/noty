@@ -46,7 +46,11 @@
             </div>
           </div>
           <div class="text-center mt-4">
-            <mdb-btn class="white-border" color="black" @click="createProfile">
+            <mdb-btn
+              class="white-border"
+              color="black"
+              @click="createUserProfile"
+            >
               <div v-if="!loading">Create Profile</div>
               <div
                 v-if="loading"
@@ -62,7 +66,11 @@
 </template>
 
 <script>
+import { mapGetters, mapActions } from "vuex";
 import { mdbBtn } from "mdbvue";
+
+import firestore from "@/firebase/firestore";
+import storage from "@/firebase/storage";
 
 export default {
   name: "CreateProfile",
@@ -79,7 +87,9 @@ export default {
     };
   },
   methods: {
-    createProfile() {
+    ...mapActions(["createProfile"]),
+    ...mapGetters(["getUser"]),
+    async createUserProfile() {
       this.loading = true;
       this.imageError = "";
       this.aboutMeError = "";
@@ -97,22 +107,44 @@ export default {
         errors++;
       }
 
-      // TODO Check if the username is taken.
-      // const usernameTaken = await profile.usernameTaken(this.username);
-      // if (usernameTaken) {
-      //   this.usernameError = 'Username is taken';
-      //   errors++;
-      // }
+      const usernameTaken = await firestore.usernameExists(this.username);
+      if (usernameTaken) {
+        this.usernameError = "Username is taken";
+        errors++;
+      }
 
       if (errors > 0) {
         this.loading = false;
         return;
       }
 
-      console.log("Creating Profile");
-      setTimeout(() => {
+      const url = await storage.uploadImage(this.image, this.image.name);
+
+      const profile = {
+        username: this.username,
+        displayImage: url,
+        aboutMe: this.aboutMe
+      };
+
+      const res = await this.createProfile({
+        uid: this.getUser().uid,
+        profile
+      });
+      if (!res) {
         this.loading = false;
-      }, 5000);
+        return;
+      }
+
+      this.username = "";
+      this.aboutMe = "";
+      this.image = null;
+      this.imageUrl = null;
+      this.usernameError = "";
+      this.aboutMeError = "";
+      this.imageError = "";
+      this.loading = false;
+
+      this.$router.push("/");
     },
     onChange(e) {
       const file = e.target.files[0];
