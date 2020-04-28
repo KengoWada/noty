@@ -55,8 +55,14 @@
         <hr />
         <div class="container text-center">
           <small>OR REGISTER WITH:</small>
+          <br /><br v-if="!googleError" />
+          <small class="text-danger" v-if="googleError">
+            {{ googleError }}
+          </small>
           <br /><br />
-          <a @click="registerUserWithGoogle"><i class="fab fa-google"></i></a>
+          <a @click="registerUserWithGoogle">
+            <i class="fab fa-google" style="font-size: 23px"></i>
+          </a>
         </div>
       </div>
     </div>
@@ -64,22 +70,25 @@
 </template>
 
 <script>
+import { mapActions } from "vuex";
 import { mdbBtn } from "mdbvue";
 
 export default {
   name: "Register",
   data() {
     return {
-      email: "",
-      password: "",
-      confirmPassword: "",
+      email: "louiskengo3@gmail.com",
+      password: "mypassword",
+      confirmPassword: "mypassword",
       emailError: "",
       passwordError: "",
       confirmPasswordError: "",
+      googleError: "",
       loading: false
     };
   },
   methods: {
+    ...mapActions(["register", "registerWithGoogle"]),
     registerUser() {
       this.emailError = "";
       this.passwordError = "";
@@ -105,9 +114,7 @@ export default {
       }
 
       if (errors > 0) {
-        setTimeout(() => {
-          this.loading = false;
-        }, 5000);
+        this.loading = false;
         return;
       }
 
@@ -116,19 +123,57 @@ export default {
         password: this.password
       };
       console.log("User data: ", data);
+      this.register(data).then(res => {
+        if (!res.isValid) {
+          this.emailError = res.error.includes("email") ? res.error : null;
+          this.passwordError = res.error.includes("password")
+            ? res.error
+            : null;
+          this.error = this.emailError || this.passwordError ? null : res.error;
+          return;
+        }
 
-      this.email = "";
-      this.emailError = "";
-      this.password = "";
-      this.passwordError = "";
-      this.username = "";
-      this.usernameError = "";
-      this.confirmPassword = "";
-      this.confirmPasswordError = "";
-      this.loading = false;
+        this.email = "";
+        this.emailError = "";
+        this.password = "";
+        this.passwordError = "";
+        this.username = "";
+        this.usernameError = "";
+        this.confirmPassword = "";
+        this.confirmPasswordError = "";
+        this.loading = false;
+
+        this.$router.push("/profile/create");
+      });
     },
     registerUserWithGoogle() {
+      this.googleError = "";
+
       console.log("Registering with Google...");
+      this.registerWithGoogle().then(res => {
+        if (!res.isValid) {
+          this.googleError = res.error;
+          return;
+        }
+
+        if (!res.exists) {
+          this.loading = false;
+          this.$router.push("/profile/create");
+          return;
+        }
+
+        this.email = "";
+        this.emailError = "";
+        this.password = "";
+        this.passwordError = "";
+        this.username = "";
+        this.usernameError = "";
+        this.confirmPassword = "";
+        this.confirmPasswordError = "";
+        this.loading = false;
+
+        this.$router.push("/");
+      });
     }
   },
   components: { mdbBtn }

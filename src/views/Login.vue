@@ -40,7 +40,9 @@
         <div class="container text-center">
           <small>OR LOGIN WITH:</small>
           <br /><br />
-          <a @click="loginWithGoogle"><i class="fab fa-google"></i></a>
+          <a @click="loginWithGoogle">
+            <i class="fab fa-google" style="font-size: 23px"></i>
+          </a>
         </div>
       </div>
     </div>
@@ -48,6 +50,7 @@
 </template>
 
 <script>
+import { mapActions } from "vuex";
 import { mdbBtn } from "mdbvue";
 
 export default {
@@ -61,15 +64,66 @@ export default {
     };
   },
   methods: {
+    ...mapActions(["login", "registerWithGoogle"]),
     loginUser() {
+      this.error = "";
       this.loading = true;
-      console.log("Logging user in");
-      setTimeout(() => {
+
+      const re = /^(([^<>()\\[\]\\.,;:\s@"]+(\.[^<>()\\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      if (!this.email || !re.test(String(this.email).toLowerCase())) {
+        this.error = "Invalid email";
         this.loading = false;
-      }, 5000);
+        return;
+      }
+      if (!this.password) {
+        this.error = "Password field can not be empty";
+        this.loading = false;
+        return;
+      }
+
+      const data = { email: this.email, password: this.password };
+      this.login(data).then(res => {
+        if (!res.isValid) {
+          this.error = res.error;
+          this.loading = false;
+          return;
+        }
+
+        if (!res.exists) {
+          this.email = "";
+          this.password = "";
+          this.error = "";
+          this.loading = false;
+          this.$router.push("/profile/create");
+          return;
+        }
+
+        this.email = "";
+        this.password = "";
+        this.error = "";
+        this.loading = false;
+
+        this.$router.push("/");
+      });
     },
     loginWithGoogle() {
-      console.log("Log in user using Google");
+      this.error = "";
+
+      this.registerWithGoogle().then(res => {
+        if (!res.isValid) {
+          this.error = res.error;
+          return;
+        }
+
+        if (!res.exists) {
+          this.$router.push("/profile/create");
+          return;
+        }
+
+        this.error = "";
+
+        this.$router.push("/");
+      });
     }
   },
   components: { mdbBtn }
